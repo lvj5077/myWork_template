@@ -1,76 +1,64 @@
-project(myVOsum)
-
-ADD_EXECUTABLE( main main.cpp) # always test cmake function first
-
-INCLUDE_DIRECTORIES ("/usr/local/include/eigen3/")
-
-SET(PCL_DIR "/usr/local/Cellar/pcl/1.9.1_4/share/pcl-1.9")
-FIND_PACKAGE( PCL 1.9 REQUIRED COMPONENTS common io visualization filters )
-ADD_DEFINITIONS( ${PCL_DEFINITIONS} )
-INCLUDE_DIRECTORIES( ${PCL_INCLUDE_DIRS}  )
-LINK_LIBRARIES( ${PCL_LIBRARY_DIRS} )
-link_directories( /usr/local/Cellar/flann/1.9.1_7/lib )
-MESSAGE( STATUS "PCL_INCLUDE_DIRS: " ${PCL_INCLUDE_DIRS} )
-MESSAGE( STATUS "PCL_LIBRARY_DIRS: " ${PCL_LIBRARY_DIRS} )
+project(solveT)
 
 
-# SET(OpenCV_DIR "/Users/lingqiujin/Third_Party_Packages/opencv-2.4.13.6/build")
-# find_package( OpenCV 2.4 REQUIRED )
-SET(OpenCV_DIR "/usr/local/Cellar/opencv@3/3.4.5_2/share/OpenCV")
+
+# Eigen
+include_directories("/opt/homebrew/Cellar/eigen/3.3.8_1/include")
+set(EIGEN3_INCLUDE_DIR "/opt/homebrew/Cellar/eigen/3.3.8_1/include/")
+include_directories("/opt/homebrew/Cellar/eigen/3.3.8_1/include/eigen3")
+
+SET(OpenCV_DIR "/Users/jin/Q_Mac/third_party/opencv-3.4.12/build")
 find_package( OpenCV 3.4 REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 link_directories(${OpenCV_LIB_DIR})
-
-include_directories( /usr/local/Cellar/opencv@3/3.4.5_2/include )
-set(SIFT_LIBS "/usr/local/Cellar/opencv@3/3.4.5_2/lib/libopencv_xfeatures2d.dylib" )
-
 MESSAGE( STATUS "OpenCV_INCLUDE_DIRS: " ${OpenCV_INCLUDE_DIRS} )
 MESSAGE( STATUS "OpenCV_LIB_DIR: " ${OpenCV_LIB_DIR} )
 MESSAGE( STATUS "OpenCV_LIBS: " ${OpenCV_LIBS} )
 
 
 
-SET(G2O_DIR "/Users/jin/Third_Party_Packages/g2o/")
-SET(G2O_LIB "/Users/jin/Third_Party_Packages/g2o/lib/")
-include_directories( ${G2O_DIR} )
-link_directories( ${G2O_LIB} )
+SET(Sophus_DIR "/Users/jin/Q_Mac/third_party/Sophus/build")
+find_package( Sophus REQUIRED )
+message( STATUS "Sophus_INCLUDE_DIR: " ${Sophus_INCLUDE_DIR})
+message( STATUS "Sophus_LIBRARY: " ${Sophus_LIBRARY})
+include_directories( ${Sophus_INCLUDE_DIR} )
 
-LIST( APPEND CMAKE_MODULE_PATH "/Users/jin/Third_Party_Packages/g2o/cmake_modules" )
-SET( G2O_ROOT "/Users/jin/Third_Party_Packages/g2o" )
-FIND_PACKAGE( G2O REQUIRED )
-include_directories( ${G2O_INCLUDE_DIR} )
-message(STATUS "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-MESSAGE( STATUS "G2O_INCLUDE_DIRS " ${G2O_INCLUDE_DIR} )
-message(STATUS "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-SET(CSparse_include_DIR "/usr/local/Cellar/suite-sparse/5.3.0_1/include/")
-SET(CSparse_LIB "/usr/local/Cellar/suite-sparse/5.3.0_1/lib/")
+
+SET(CSparse_include_DIR "/Users/jin/Q_Mac/third_party/SuiteSparse/include/")
+SET(CSparse_LIB "/Users/jin/Q_Mac/third_party/SuiteSparse/lib/")
 include_directories( ${CSparse_include_DIR} )
 link_directories( ${CSparse_LIB} )
 
+# SET( Ceres_DIR  "/Users/jin/Q_Mac/third_party/ceres-solver/builds")
 
-ADD_LIBRARY( slamBase slamBase.cpp )
-TARGET_LINK_LIBRARIES( slamBase
-   ${OpenCV_LIBS}
-   ${SIFT_LIBS} # if use brew version, then not very neccessary
-)
+# SET(CERES_INCLUDE_DIRS "/Users/jin/Q_Mac/third_party/ceres-solver/include/")
+# SET(CERES_LIBRARIES "/Users/jin/Q_Mac/third_party/ceres-solver/builds/lib/")
 
-ADD_LIBRARY( myG2Oedge myG2Oedge.cpp )
-TARGET_LINK_LIBRARIES( myG2Oedge
-   g2o_core g2o_stuff g2o_types_sba g2o_csparse_extension g2o_solver_csparse g2o_types_slam3d
-   ${CSparse_include_LIB} 
-)
+find_package( Ceres REQUIRED )
+MESSAGE( STATUS "CERES_INCLUDE_DIRS: " ${CERES_INCLUDE_DIRS} ) # include eigen3 as well
+MESSAGE( STATUS "CERES_LIBRARIES: " ${CERES_LIBRARIES} )
+include_directories( ${CERES_INCLUDE_DIRS} )
+
+# /usr/local/Cellar/glog/0.4.0
+SET(glog_include_DIR "/opt/homebrew/Cellar/glog/0.4.0/include/")
+SET(glog_LIB "/opt/homebrew/Cellar/glog/0.4.0/lib/")
+find_package( glog )
+include_directories( ${glog_include_DIR})
+link_directories( ${glog_LIB} )
+
+# "/usr/local/Cellar/gflags/2.2.2/include"
+SET(gflags_include_DIR "/opt/homebrew/Cellar/gflags/2.2.2/include/")
+SET(gflags_LIB "/opt/homebrew/Cellar/gflags/2.2.2/lib/")
+find_package( gflags )
+include_directories( ${gflags_include_DIR})
+link_directories( ${gflags_LIB} )
 
 
-ADD_LIBRARY( pose_estimation pose_estimation.cpp )
-TARGET_LINK_LIBRARIES( pose_estimation
-   ${OpenCV_LIBS}
-   myG2Oedge
-)
 
-ADD_EXECUTABLE( testT testT.cpp )
-TARGET_LINK_LIBRARIES( testT
-	slamBase
-   pose_estimation
-   ${OpenCV_LIBS}
-)
+ADD_EXECUTABLE( objectBA objectBA.cpp) # always test cmake function first
+target_link_libraries(objectBA  ${CERES_LIBRARIES} ${Sophus_LIBRARY}) 
+
+
+ADD_EXECUTABLE( objectBAmv objectBAmv.cpp) # always test cmake function first
+target_link_libraries(objectBAmv  ${CERES_LIBRARIES} ${Sophus_LIBRARY}) 
